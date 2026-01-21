@@ -14,7 +14,7 @@ class CinemaController extends Controller
     public function index()
     {
         // Remove .get() and call paginate() directly
-        $cinemas = Cinema::latest()->paginate(10);
+        $cinemas = Cinema::latest()->paginate(5);
 
         return view('admin.cinemas.index', compact('cinemas'));
     }
@@ -24,15 +24,27 @@ class CinemaController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.cinemas.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
+
     public function store(Request $request)
     {
-        //
+        // dd($request->all());
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'type' => 'required|in:public,private,mixed',
+            'status' => 'boolean',
+        ]);
+
+        Cinema::create($validated);
+
+        return redirect()->route('cinemas.index')->with('success', 'Cinema created successfully!');
     }
 
     /**
@@ -46,17 +58,25 @@ class CinemaController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Cinema $cinema)
     {
-        //
+        // $cinema is automatically fetched by Laravel's Route Model Binding
+        return view('admin.cinemas.edit', compact('cinema'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Cinema $cinema)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'type' => 'required|in:public,private,mixed',
+            'status' => 'boolean',
+        ]);
+
+        $cinema->update($validated);
+
+        return redirect()->route('cinemas.index')->with('success', 'Cinema updated successfully!');
     }
 
     /**
@@ -64,6 +84,9 @@ class CinemaController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $cinema = Cinema::findOrFail($id);
+        $cinema->delete();
+
+        return redirect()->route('cinemas.index')->with('success', 'Cinema deleted successfully!');
     }
 }

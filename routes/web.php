@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\CinemaController;
+use App\Http\Controllers\Admin\MovieController;
+use App\Http\Controllers\Admin\ScreenController;
+use App\Http\Controllers\Admin\SeatRowController;
+use App\Http\Controllers\Admin\ShowtimeController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +24,10 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::resource('cinemas', CinemaController::class);
+    Route::resource('screens', ScreenController::class);
+    Route::resource('screens.seat_rows', SeatRowController::class);
+    Route::resource('movies', MovieController::class);
+    Route::resource('showtimes', ShowtimeController::class);
 });
 
 
