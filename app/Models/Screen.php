@@ -26,5 +26,10 @@ class Screen extends Model
     public function seatRows()
     {
         return $this->hasMany(SeatRow::class);
+    } 
+
+    public function privateRoomPrice()
+    {
+        return $this->hasOne(PrivateRoomPrice::class);
     }
 }

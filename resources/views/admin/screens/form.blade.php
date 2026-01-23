@@ -33,6 +33,7 @@
         </select>
     </div>
 
+    {{-- Capacity Field (Public Only) --}}
     <div id="capacityDiv">
         <label for="capacity" class="block text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wider">Seating
             Capacity</label>
@@ -41,6 +42,7 @@
             placeholder="e.g. 150">
     </div>
 
+    {{-- Room Type Field (Private Only) --}}
     <div id="roomTypeDiv" style="display:none;">
         <label for="room_type" class="block text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wider">Room
             Type</label>
@@ -54,6 +56,22 @@
             </option>
         </select>
     </div>
+</div>
+
+{{-- New: Private Room Price Field (Private Only) --}}
+<div id="priceDiv" class="mb-6" style="display:none;">
+    <label for="price" class="block text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wider">Private Room
+        Price ($)</label>
+    <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span class="text-gray-500 sm:text-sm">$</span>
+        </div>
+        <input type="number" name="price" id="price"
+            value="{{ old('price', $screen->privateRoomPrice->price ?? '') }}"
+            class="w-full pl-7 border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm transition"
+            placeholder="0.00" step="0.01">
+    </div>
+    <p class="mt-2 text-xs text-gray-500 italic">This is the flat rate for booking the entire room.</p>
 </div>
 
 <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100 mb-8">
@@ -75,8 +93,8 @@
         const screenType = document.getElementById('screen_type');
         const roomTypeDiv = document.getElementById('roomTypeDiv');
         const capacityDiv = document.getElementById('capacityDiv');
+        const priceDiv = document.getElementById('priceDiv');
 
-        // Create a JS object of cinema types from PHP
         const cinemaTypes = {
             @foreach ($cinemas as $cinema)
                 "{{ $cinema->id }}": "{{ $cinema->type }}",
@@ -89,19 +107,20 @@
             // RULE: If Cinema is Private, Screen MUST be Private
             if (selectedCinemaType === 'private') {
                 screenType.value = 'private';
-                // Disable 'public' option so they can't change it
-                screenType.options[0].disabled = true;
+                screenType.options[0].disabled = true; // Disable Public
             } else {
                 screenType.options[0].disabled = false;
             }
 
-            // Toggle Room/Capacity visibility
+            // Toggle Visibility based on Screen Type
             if (screenType.value === 'private') {
                 roomTypeDiv.style.display = 'block';
-                capacityDiv.style.display = 'none';
+                priceDiv.style.display = 'block'; // Show Price
+                capacityDiv.style.display = 'none'; // Hide Capacity
             } else {
                 roomTypeDiv.style.display = 'none';
-                capacityDiv.style.display = 'block';
+                priceDiv.style.display = 'none'; // Hide Price
+                capacityDiv.style.display = 'block'; // Show Capacity
             }
         }
 

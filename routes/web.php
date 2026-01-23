@@ -5,7 +5,10 @@ use App\Http\Controllers\Admin\MovieController;
 use App\Http\Controllers\Admin\ScreenController;
 use App\Http\Controllers\Admin\SeatRowController;
 use App\Http\Controllers\Admin\ShowtimeController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Models\Booking;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -28,7 +31,12 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::resource('screens.seat_rows', SeatRowController::class);
     Route::resource('movies', MovieController::class);
     Route::resource('showtimes', ShowtimeController::class);
+    Route::resource('bookings', BookingController::class);
+
+    Route::get('/payments/{booking}/create', [PaymentController::class, 'paymentPage'])->name('payments.create');
+
+    Route::post('payment/process', [PaymentController::class, 'store'])->name('payments.store');
 });
 
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

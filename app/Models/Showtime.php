@@ -23,4 +23,10 @@ class Showtime extends Model
     {
         return $this->belongsTo(Screen::class);
     }
+
+    // app/Models/Showtime.php
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
 }

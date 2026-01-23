@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Movie;
 use App\Models\Screen;
+use App\Models\SeatLock;
 use App\Models\Showtime;
+use App\Services\SeatAvailabilityService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ShowtimeController extends Controller
 {
@@ -54,10 +57,16 @@ class ShowtimeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    // ShowtimeController.php
+    public function show(Showtime $showtime, SeatAvailabilityService $seatService)
     {
-        //
+        $showtime->load(['movie', 'screen']);
+
+        $seatMap = $seatService->get($showtime);
+
+        return view('admin.showtimes.show', compact('showtime', 'seatMap'));
     }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -102,5 +111,40 @@ class ShowtimeController extends Controller
         $showtime = Showtime::findOrFail($id);
         $showtime->delete();
         return redirect()->route('showtimes.index')->with('success', 'Showtime deleted successfully!');
+    }
+
+
+
+    public function lockSeats(Request $request)
+    {
+        $request->validate([
+            'showtime_id' => 'required|exists:showtimes,id',
+            'seat_ids' => 'required|array|min:1'
+        ]);
+
+        DB::transaction(function () use ($request) {
+
+            $exists = SeatLock::where('showtime_id', $request->showtime_id)
+                ->whereIn('seat_id', $request->seat_ids)
+                ->where('expires_at', '>', now())
+                ->exists();
+
+            if ($exists) {
+                abort(409);
+            }
+
+            foreach ($request->seat_ids as $seatId) {
+                SeatLock::create([
+                    'showtime_id' => $request->showtime_id,
+                    'seat_id' => $seatId,
+                    'user_id' => auth()->id(),
+                    'expires_at' => now()->addMinutes(2),
+                ]);
+            }
+        });
+
+        return response()->json([
+            'redirect' => route('bookings.create', $request->showtime_id)
+        ]);
     }
 }
