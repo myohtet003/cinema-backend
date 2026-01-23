@@ -1,12 +1,24 @@
 <x-app-layout>
     <div class="min-h-screen bg-gray-950 py-12 text-white">
         <div class="max-w-6xl mx-auto px-4">
+ 
+            <div class="w-full h-1 bg-white/5">
+                <div class="h-full bg-indigo-600 w-2/4 shadow-[0_0_15px_rgba(99,102,241,0.6)]"></div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between gap-6  mb-14">
+                <div>
+                    <span class="text-[10px] tracking-[0.4em] uppercase text-indigo-500 font-black">
+                        Step 02 · Select Seats
+                    </span>
+                </div>
+            </div>
 
             {{-- Header --}}
             <div
                 class="flex flex-col md:flex-row md:items-center justify-between mb-12 border-l-4 border-indigo-600 pl-6">
                 <div>
-                    <h1 class="text-3xl font-black">
+                    <h1 class="text-3xl mb-3 font-black">
                         {{ $showtime->movie->title }}
                     </h1>
                     <p class="text-gray-400 font-medium">

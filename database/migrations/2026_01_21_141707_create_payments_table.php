@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('booking_id')->constrained()->cascadeOnDelete();
-            $table->enum('payment_method', ['kbzpay', 'ayapay', 'wavepay']);
+            $table->foreignId('payment_method_id')->constrained()->cascadeOnDelete();
             $table->string('transaction_id')->nullable();
             $table->integer('amount');
             $table->enum('status', ['pending', 'success', 'failed']);

@@ -17,7 +17,16 @@ class BookingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() {}
+    public function index()
+    {
+        // Eager load showtime, movie, and seats to avoid N+1 query issues
+        $bookings = Booking::with(['showtime.movie', 'bookingSeats.seat.seatRow'])
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->paginate(10);
+
+        return view('bookings.index', compact('bookings'));
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -111,9 +120,10 @@ class BookingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Booking $booking)
     {
-        //
+        $booking->load(['showtime.movie', 'showtime.screen.cinema', 'bookingSeats.seat.seatRow', 'payment.paymentMethod']);
+        return view('bookings.show', compact('booking'));
     }
 
     /**
@@ -138,5 +148,60 @@ class BookingController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+
+
+    public function approve(Booking $booking)
+    {
+        // Check if user is admin (Assuming you have an 'is_admin' column or middleware)
+        if (!auth()->user()->id) {
+            abort(403);
+        }
+
+        try {
+            DB::transaction(function () use ($booking) {
+                // 1. Update Booking Status
+                $booking->update(['status' => 'paid']);
+
+                // 2. Update Payment Status (Assuming you have a 'payments' table linked)
+                if ($booking->payment) {
+                    $booking->payment->update(['status' => 'success']);
+                }
+            });
+
+            return back()->with('success', 'Booking #' . $booking->id . ' has been approved successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Something went wrong during approval.');
+        }
+    }
+
+    public function reject(Booking $booking)
+    {
+        // Ensure only admins can do this
+        if (!auth()->user()->id) {
+            abort(403);
+        }
+
+        try {
+            DB::transaction(function () use ($booking) {
+                // Update Booking Status
+                $booking->update([
+                    'status' => 'cancelled',
+                ]);
+
+                // Update Payment Status
+                if ($booking->payment) {
+                    $booking->payment->update([
+                        'status' => 'failed',
+                        // You could save "Wrong Transaction ID" in a notes column here
+                    ]);
+                }
+            });
+
+            return back()->with('success', 'Booking rejected. The user will see this as "Cancelled".');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to reject booking.');
+        }
     }
 }

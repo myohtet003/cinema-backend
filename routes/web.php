@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CinemaController;
 use App\Http\Controllers\Admin\MovieController;
+use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ScreenController;
 use App\Http\Controllers\Admin\SeatRowController;
 use App\Http\Controllers\Admin\ShowtimeController;
@@ -32,11 +33,19 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::resource('movies', MovieController::class);
     Route::resource('showtimes', ShowtimeController::class);
     Route::resource('bookings', BookingController::class);
+    Route::resource('payment_methods', PaymentMethodController::class);
 
     Route::get('/payments/{booking}/create', [PaymentController::class, 'paymentPage'])->name('payments.create');
 
     Route::post('payment/process', [PaymentController::class, 'store'])->name('payments.store');
 });
+ // Ensure this matches your controller path
 
+Route::middleware(['auth'])->group(function () {
+    // Other admin routes...
+    
+    Route::patch('/admin/bookings/{booking}/approve', [BookingController::class, 'approve'])->name('admin.bookings.approve');
+    Route::patch('/admin/bookings/{booking}/reject', [BookingController::class, 'reject'])->name('admin.bookings.reject');
+});
 
 require __DIR__ . '/auth.php';
