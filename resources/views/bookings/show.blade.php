@@ -146,6 +146,10 @@
                     class="w-full py-4 text-gray-400 text-sm font-bold text-center hover:text-white transition">
                     ← Return to Dashboard
                 </a>
+                 <a href="{{ route('bookings.index') }}"
+                    class="w-full py-4 text-gray-400 text-sm font-bold text-center hover:text-white transition">
+                    ← Return to Booking
+                </a>
             </div>
         </div>
     </div>

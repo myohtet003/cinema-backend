@@ -1,19 +1,18 @@
 <x-app-layout>
     <div class="min-h-screen bg-gradient-to-b from-[#050505] to-[#0a0a0a] text-white antialiased">
 
+        {{-- Top Navigation Padding --}}
+        <div class="max-w-6xl mx-auto px-5 py-6"></div>
 
-        <div class="max-w-6xl mx-auto px-5 py-6"> 
-        </div>
+        {{-- Animated Progress Bar --}}
         <div class="w-full h-1 bg-white/5">
             <div class="h-full bg-indigo-600 w-1/4 shadow-[0_0_15px_rgba(99,102,241,0.6)]"></div>
         </div>
 
-        <div class="flex flex-col md:flex-row justify-between gap-6  mb-14">
-            <div>
-                <span class="text-[10px] tracking-[0.4em] uppercase text-indigo-500 font-black">
-                    Step 01 · Show Times
-                </span>
-            </div>
+        <div class="max-w-7xl mx-auto px-8 pt-10">
+            <span class="text-[10px] tracking-[0.4em] uppercase text-indigo-500 font-black">
+                Step 01 · Show Times
+            </span>
         </div>
 
         {{-- 1. HERO SECTION WITH POSTER --}}
@@ -35,10 +34,12 @@
                     <div class="flex-1 order-2 lg:order-1 text-center lg:text-left">
                         <div
                             class="flex items-center justify-center lg:justify-start gap-4 mb-6 text-[10px] font-black tracking-[0.4em] uppercase text-indigo-500">
-                            <span
-                                class="border-l-2 border-indigo-500 pl-3">{{ str_replace('_', ' ', $movie->status) }}</span>
-                            <span class="text-neutral-500">{{ floor($movie->duration_minutes / 60) }}H
-                                {{ $movie->duration_minutes % 60 }}M</span>
+                            <span class="border-l-2 border-indigo-500 pl-3">
+                                {{ str_replace('_', ' ', $movie->status) }}
+                            </span>
+                            <span class="text-neutral-500">
+                                {{ floor($movie->duration_minutes / 60) }}H {{ $movie->duration_minutes % 60 }}M
+                            </span>
                         </div>
 
                         <h1
@@ -55,7 +56,6 @@
                     {{-- Right: Poster --}}
                     <div class="flex-shrink-0 order-1 lg:order-2">
                         <div class="relative group">
-                            {{-- Decorative Shadow/Border --}}
                             <div
                                 class="absolute -inset-2 border border-indigo-500/20 translate-x-4 translate-y-4 group-hover:translate-x-2 group-hover:translate-y-2 transition-transform duration-500">
                             </div>
@@ -74,23 +74,22 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
-
+ 
         {{-- 2. LOCATION & SHOWTIME SELECTION --}}
         <div class="max-w-7xl mx-auto px-8 py-24 space-y-24">
 
             @php
-                $locations = $movie->showtimes->groupBy('screen.cinema_id');
+                // Use the filtered $showtimes from your controller
+                $locations = $showtimes->groupBy('screen.cinema_id');
             @endphp
 
             @forelse ($locations as $cinemaId => $cinemaShowtimes)
                 @php $cinema = $cinemaShowtimes->first()->screen->cinema; @endphp
 
                 <div class="space-y-12">
-
                     {{-- Cinema Header --}}
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-6 border-b border-white/10 pb-6 mb-6 items-end">
                         <div class="md:col-span-8">
@@ -116,50 +115,70 @@
                     {{-- Dates & Times --}}
                     <div class="space-y-8">
                         @foreach ($cinemaShowtimes->groupBy('show_date') as $date => $times)
-                            <div class="grid grid-cols-1 lg:grid-cols-6 gap-6 items-start">
+                            {{-- 1. BLADE FILTER: Only show this row if the date is today or in the future --}}
+                            @if (\Carbon\Carbon::parse($date)->isToday() || \Carbon\Carbon::parse($date)->isFuture())
+                                <div class="grid grid-cols-1 lg:grid-cols-6 gap-6 items-start">
 
-                                {{-- Date --}}
-                                <div class="lg:col-span-1 border-t-2 border-white/10 pt-4">
-                                    <span
-                                        class="block text-2xl md:text-3xl font-bold tracking-tight">{{ \Carbon\Carbon::parse($date)->format('D, d M') }}</span>
-                                    <span
-                                        class="text-[9px] font-black text-neutral-600 uppercase tracking-widest mt-1 italic">Now
-                                        Playing</span>
+                                    {{-- Date Column --}}
+                                    <div class="lg:col-span-1 border-t-2 border-white/10 pt-4">
+                                        <span class="block text-2xl md:text-3xl font-bold tracking-tight">
+                                            {{ \Carbon\Carbon::parse($date)->format('D, d M') }}
+                                        </span>
+                                        <span
+                                            class="text-[9px] font-black text-neutral-600 uppercase tracking-widest mt-1 italic">
+                                            Available Today
+                                        </span>
+                                    </div>
+
+                                    {{-- Showtimes Grid --}}
+                                    <div
+                                        class="lg:col-span-5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 bg-white/5 border border-white/10 rounded-xl overflow-hidden p-1">
+                                        @foreach ($times as $showtime)
+                                            {{-- 2. DOUBLE CHECK: Ensure start_time specifically is not in the past --}}
+                                            @if (\Carbon\Carbon::parse($showtime->start_time)->isFuture())
+                                                @php $isScreenActive = $showtime->screen->status; @endphp
+
+                                                @if (!$isScreenActive)
+                                                    <div
+                                                        class="relative bg-white/5 p-6 flex flex-col items-center justify-center text-center rounded-xl opacity-40 grayscale cursor-not-allowed border border-dashed border-white/10">
+                                                        <span
+                                                            class="text-2xl font-light tracking-tighter text-neutral-500">
+                                                            {{ \Carbon\Carbon::parse($showtime->start_time)->format('h:i') }}
+                                                        </span>
+                                                        <span
+                                                            class="text-[7px] font-black uppercase tracking-widest text-red-500/70 mt-2">
+                                                            Maintenance
+                                                        </span>
+                                                    </div>
+                                                @else
+                                                    <a href="{{ route('showtimes.show', $showtime->id) }}"
+                                                        class="group relative bg-[#050505] p-6 flex flex-col items-center justify-center text-center transition-all duration-300 hover:bg-indigo-600/10 hover:scale-105 focus:outline-none rounded-xl">
+                                                        <span
+                                                            class="text-2xl font-light tracking-tighter transition-colors group-hover:text-indigo-500 text-white">
+                                                            {{ \Carbon\Carbon::parse($showtime->start_time)->format('h:i') }}
+                                                        </span>
+                                                        <span
+                                                            class="text-[8px] font-black uppercase tracking-[0.2em] text-neutral-500 mt-2 transition-colors group-hover:text-indigo-300">
+                                                            {{ \Carbon\Carbon::parse($showtime->start_time)->format('A') }}
+                                                            • {{ $showtime->screen->name }}
+                                                        </span>
+                                                        <div
+                                                            class="absolute bottom-0 left-0 w-full h-1 bg-indigo-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left">
+                                                        </div>
+                                                    </a>
+                                                @endif
+                                            @endif
+                                        @endforeach
+                                    </div>
                                 </div>
-
-                                {{-- Showtimes --}}
-                                <div
-                                    class="lg:col-span-5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 bg-white/10 border border-white/10 rounded-xl overflow-hidden">
-                                    @foreach ($times as $showtime)
-                                        <a href="{{ route('showtimes.show', $showtime->id) }}"
-                                            class="group relative bg-[#050505] p-6 flex flex-col items-center justify-center text-center transition-all duration-300 hover:bg-indigo-600/10 hover:scale-105 focus:outline-none rounded-xl">
-
-                                            <span
-                                                class="text-2xl font-light tracking-tighter transition-colors group-hover:text-indigo-500">
-                                                {{ \Carbon\Carbon::parse($showtime->start_time)->format('h:i') }}
-                                            </span>
-                                            <span
-                                                class="text-[8px] font-black uppercase tracking-[0.2em] text-neutral-500 mt-2 transition-colors group-hover:text-indigo-300">
-                                                {{ \Carbon\Carbon::parse($showtime->start_time)->format('A') }} •
-                                                {{ $showtime->screen->name }}
-                                            </span>
-
-                                            <div
-                                                class="absolute bottom-0 left-0 w-full h-1 bg-indigo-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left">
-                                            </div>
-                                        </a>
-                                    @endforeach
-                                </div>
-
-                            </div>
+                            @endif
                         @endforeach
                     </div>
                 </div>
-
             @empty
                 <div class="py-32 text-center border border-dashed border-white/5 rounded-xl">
-                    <span class="text-xs uppercase tracking-[0.5em] text-neutral-700">No screenings found in your
-                        area</span>
+                    <span class="text-xs uppercase tracking-[0.5em] text-neutral-700">No screenings available at this
+                        time</span>
                 </div>
             @endforelse
         </div>

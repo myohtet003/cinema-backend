@@ -54,9 +54,16 @@ class MovieController extends Controller
      */
     public function show(string $id)
     {
-        $movie = Movie::findOrFail($id);
-        return view('admin.movies.show', compact('movie'));
-    }
+        // Eager load showtimes and their associated screens
+        $movie = Movie::with(['showtimes.screen'])->findOrFail($id);
+
+        $showtimes = $movie->showtimes()
+            ->where('start_time', '>', now()) // Only show future showtimes
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        return view('admin.movies.show', compact('movie', 'showtimes'));
+    } 
 
     /**
      * Show the form for editing the specified resource.

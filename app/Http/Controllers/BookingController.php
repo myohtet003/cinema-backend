@@ -39,6 +39,11 @@ class BookingController extends Controller
             return redirect()->back()->with('error', 'No seats selected.');
         }
 
+        if ($showtime->start_time < now()) {
+            return redirect()->route('movies.index')
+                ->with('error', 'This showtime has already passed and is no longer available.');
+        }
+
         $seats = Seat::with('seatRow')->whereIn('id', $seatIds)->get();
         $totalPrice = $seats->sum(fn($seat) => $seat->seatRow->price);
 
@@ -147,7 +152,10 @@ class BookingController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        
+        $id = Booking::findOrFail($id);
+        $id->delete();  
+        return redirect()->route('bookings.index')->with('success', 'Booking deleted successfully.');
     }
 
 

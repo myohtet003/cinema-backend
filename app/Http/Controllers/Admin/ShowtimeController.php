@@ -20,9 +20,9 @@ class ShowtimeController extends Controller
     {
         // Eager load movie, screen, and cinema for better performance
         $showtimes = Showtime::with(['movie', 'screen.cinema'])
-            ->orderBy('show_date', 'asc')
-            ->orderBy('start_time', 'asc')
-            ->paginate(15);
+            ->orderBy('show_date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->paginate(10);
 
         return view('admin.showtimes.index', compact('showtimes'));
     }

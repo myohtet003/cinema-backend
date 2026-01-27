@@ -29,4 +29,12 @@ class Showtime extends Model
     {
         return $this->hasMany(Booking::class);
     }
+    
+    protected static function booted()
+    {
+        static::addGlobalScope('upcoming', function ($builder) {
+            $builder->where('start_time', '>', now());
+        });
+    }
 }
+
