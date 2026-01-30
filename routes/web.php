@@ -7,18 +7,21 @@ use App\Http\Controllers\Admin\ScreenController;
 use App\Http\Controllers\Admin\SeatRowController;
 use App\Http\Controllers\Admin\ShowtimeController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [UserController::class, 'home'])->name('home');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/movie/{id}', [UserController::class, 'showMovie'])->name('movie.show');
+
+Route::get('/dashboard', [DashboardController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/cinemas', [UserController::class, 'index'])->name('cinemas');
+Route::get('/schedule/{cinema}', [UserController::class, 'showSchedule'])->name('schedule.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -39,11 +42,11 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
     Route::post('payment/process', [PaymentController::class, 'store'])->name('payments.store');
 });
- // Ensure this matches your controller path
+// Ensure this matches your controller path
 
 Route::middleware(['auth'])->group(function () {
     // Other admin routes...
-    
+
     Route::patch('/admin/bookings/{booking}/approve', [BookingController::class, 'approve'])->name('admin.bookings.approve');
     Route::patch('/admin/bookings/{booking}/reject', [BookingController::class, 'reject'])->name('admin.bookings.reject');
 });

@@ -53,6 +53,7 @@ class BookingController extends Controller
     // Store booking and redirect to payment
     public function store(Request $request)
     {
+        // dd('store booking called');
         $request->validate([
             'showtime_id' => 'required|exists:showtimes,id',
             'selected_seats' => 'required|string',

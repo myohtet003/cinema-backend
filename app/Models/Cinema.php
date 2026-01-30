@@ -20,4 +20,16 @@ class Cinema extends Model
     protected $casts = [
         'status' => 'boolean',
     ];
+
+
+    public function screens()
+    {
+        return $this->hasMany(Screen::class);
+    }
+
+    // This allows you to get showtimes directly through screens
+    public function showtimes()
+    {
+        return $this->hasManyThrough(Showtime::class, Screen::class);
+    }
 }
