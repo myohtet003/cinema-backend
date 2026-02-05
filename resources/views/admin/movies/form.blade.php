@@ -11,7 +11,6 @@
         @enderror
     </div>
 
-    {{-- Description --}}
     <div>
         <label for="description"
             class="block text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wider">Description</label>
