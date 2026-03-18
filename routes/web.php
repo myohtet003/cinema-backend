@@ -29,7 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::resource('cinemas', CinemaController::class);
     Route::resource('screens', ScreenController::class);
     Route::resource('screens.seat_rows', SeatRowController::class);
@@ -44,11 +44,13 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 });
 // Ensure this matches your controller path
 
-Route::middleware(['auth'])->group(function () {
-    // Other admin routes...
-
+Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::patch('/admin/bookings/{booking}/approve', [BookingController::class, 'approve'])->name('admin.bookings.approve');
     Route::patch('/admin/bookings/{booking}/reject', [BookingController::class, 'reject'])->name('admin.bookings.reject');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/bookings/private', [BookingController::class, 'storePrivate'])->name('bookings.storePrivate');
 });
 
 require __DIR__ . '/auth.php';
