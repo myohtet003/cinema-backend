@@ -50,12 +50,19 @@
                             <p class="text-sm font-bold text-black">{{ $booking->showtime->screen->name }}</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-[9px] text-gray-400 uppercase font-black">Seats</p>
-                            <p class="text-sm font-bold text-black">
-                                @foreach ($booking->bookingSeats as $bs)
-                                    {{ $bs->seat->seatRow->row_name }}{{ $bs->seat->seat_number }}{{ !$loop->last ? ',' : '' }}
-                                @endforeach
-                            </p>
+                            @if ($booking->booking_type === 'private')
+                                <p class="text-[9px] text-gray-400 uppercase font-black">Room Type</p>
+                                <p class="text-sm font-bold text-black">
+                                    {{ ['2p' => '2 Persons', '4p' => '4 Persons', '6p' => '6 Persons'][$booking->showtime->screen->room_type] ?? 'Private Room' }}
+                                </p>
+                            @else
+                                <p class="text-[9px] text-gray-400 uppercase font-black">Seats</p>
+                                <p class="text-sm font-bold text-black">
+                                    @foreach ($booking->bookingSeats as $bs)
+                                        {{ $bs->seat->seatRow->row_name }}{{ $bs->seat->seat_number }}{{ !$loop->last ? ',' : '' }}
+                                    @endforeach
+                                </p>
+                            @endif
                         </div>
                     </div>
 

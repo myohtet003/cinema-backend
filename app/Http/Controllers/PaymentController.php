@@ -16,7 +16,6 @@ class PaymentController extends Controller
                 ->with('error', 'This booking is already paid or expired.');
         }
 
-        // Load relationships and fetch active payment methods from your table
         $booking->load(['bookingSeats.seat.seatRow', 'showtime.movie', 'showtime.screen.cinema']);
         $paymentMethods = PaymentMethod::where('status', 1)->get();
 

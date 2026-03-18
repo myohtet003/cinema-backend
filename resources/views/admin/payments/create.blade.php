@@ -173,19 +173,25 @@
                             </div>
                         </div>
 
-                        {{-- SEATS --}}
+                        {{-- SEATS / ROOM --}}
                         <div class="mb-8">
-                            <p class="text-gray-500 uppercase tracking-widest text-xs mb-3">
-                                Seats
-                            </p>
-                            <div class="flex flex-wrap gap-2">
-                                @foreach ($booking->bookingSeats as $bs)
-                                    <span
-                                        class="px-3 py-1 text-xs rounded-full bg-indigo-500/10 text-indigo-400 font-black">
-                                        {{ $bs->seat->seatRow->row_name }}{{ $bs->seat->seat_number }}
-                                    </span>
-                                @endforeach
-                            </div>
+                            @if ($booking->booking_type === 'private')
+                                <p class="text-gray-500 uppercase tracking-widest text-xs mb-3">Room</p>
+                                <span class="px-3 py-1 text-xs rounded-full bg-purple-500/10 text-purple-400 font-black">
+                                    {{ $booking->showtime->screen->name }}
+                                    ({{ ['2p' => '2 Persons', '4p' => '4 Persons', '6p' => '6 Persons'][$booking->showtime->screen->room_type] ?? 'Private Room' }})
+                                </span>
+                            @else
+                                <p class="text-gray-500 uppercase tracking-widest text-xs mb-3">Seats</p>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach ($booking->bookingSeats as $bs)
+                                        <span
+                                            class="px-3 py-1 text-xs rounded-full bg-indigo-500/10 text-indigo-400 font-black">
+                                            {{ $bs->seat->seatRow->row_name }}{{ $bs->seat->seat_number }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
 
                         {{-- TOTAL --}}

@@ -16,29 +16,31 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    <x-nav-link :href="route('cinemas.index')" :active="request()->routeIs('cinemas.*')">
-                        {{ __('Cinema') }}
-                    </x-nav-link>
+                    @if(Auth::user()->role === 'admin')
+                        <x-nav-link :href="route('cinemas.index')" :active="request()->routeIs('cinemas.*')">
+                            {{ __('Cinema') }}
+                        </x-nav-link>
 
-                    <x-nav-link :href="route('screens.index')" :active="request()->routeIs('screens.*')">
-                        {{ __('Screens') }}
-                    </x-nav-link>
+                        <x-nav-link :href="route('screens.index')" :active="request()->routeIs('screens.*')">
+                            {{ __('Screens') }}
+                        </x-nav-link>
 
-                    <x-nav-link :href="route('movies.index')" :active="request()->routeIs('movies.*')">
-                        {{ __('Movies') }}
-                    </x-nav-link>
+                        <x-nav-link :href="route('movies.index')" :active="request()->routeIs('movies.*')">
+                            {{ __('Movies') }}
+                        </x-nav-link>
 
-                    <x-nav-link :href="route('showtimes.index')" :active="request()->routeIs('showtimes.*')">
-                        {{ __('Showtimes') }}
-                    </x-nav-link>
+                        <x-nav-link :href="route('showtimes.index')" :active="request()->routeIs('showtimes.*')">
+                            {{ __('Showtimes') }}
+                        </x-nav-link>
 
-                    <x-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.*')">
-                        {{ __('Bookings') }}
-                    </x-nav-link>
+                        <x-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.*')">
+                            {{ __('Bookings') }}
+                        </x-nav-link>
 
-                    <x-nav-link :href="route('payment_methods.index')" :active="request()->routeIs('payment_methods.*')">
-                        {{ __('Method') }}
-                    </x-nav-link>
+                        <x-nav-link :href="route('payment_methods.index')" :active="request()->routeIs('payment_methods.*')">
+                            {{ __('Method') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -102,6 +104,27 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @if(Auth::user()->role === 'admin')
+                <x-responsive-nav-link :href="route('cinemas.index')" :active="request()->routeIs('cinemas.*')">
+                    {{ __('Cinema') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('screens.index')" :active="request()->routeIs('screens.*')">
+                    {{ __('Screens') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('movies.index')" :active="request()->routeIs('movies.*')">
+                    {{ __('Movies') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('showtimes.index')" :active="request()->routeIs('showtimes.*')">
+                    {{ __('Showtimes') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.*')">
+                    {{ __('Bookings') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('payment_methods.index')" :active="request()->routeIs('payment_methods.*')">
+                    {{ __('Method') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

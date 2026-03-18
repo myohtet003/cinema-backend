@@ -113,35 +113,66 @@
                         </div>
                     </div>
 
-                    <div id="selected-tickets-container" class="space-y-3 mb-10"></div>
-
-                    <form action="{{ route('bookings.store') }}" method="POST" id="booking-form">
-                        @csrf
-                        <input type="hidden" name="showtime_id" value="{{ $currentShowtime?->id }}">
-                        <input type="hidden" name="selected_seats" id="seats-input">
-
-                        <div class="flex items-center justify-between pt-6 border-t border-white/5">
-                            <div>
-                                <p class="text-[10px] uppercase font-black text-gray-500 mb-1">Total Price</p>
-                                <p class="text-4xl font-black text-white">$<span id="total-display">0</span></p>
+                    @if ($currentShowtime && $currentShowtime->screen->screen_type === 'private')
+                        {{-- Private Room: flat-rate booking --}}
+                        @php $roomPrice = $currentShowtime->screen->privateRoomPrice; @endphp
+                        <div class="pt-6 border-t border-white/5">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] uppercase font-black text-gray-500 mb-1">Room Price</p>
+                                    <p class="text-4xl font-black text-white">
+                                        {{ number_format($roomPrice?->price ?? 0) }}
+                                        <span class="text-base text-gray-500 font-semibold">MMK</span>
+                                    </p>
+                                </div>
+                                @auth
+                                    <form action="{{ route('bookings.storePrivate') }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="showtime_id" value="{{ $currentShowtime->id }}">
+                                        <button type="submit"
+                                            class="px-12 py-5 bg-purple-600 hover:bg-purple-500 text-white font-black rounded-3xl transition-all transform hover:scale-105">
+                                            Book Room
+                                        </button>
+                                    </form>
+                                @else
+                                    <a href="{{ route('login') }}"
+                                        class="px-12 py-5 bg-gray-700 hover:bg-gray-600 text-white font-black rounded-3xl transition-all">Login
+                                        to Book</a>
+                                @endauth
                             </div>
-
-                            @auth
-                                <button type="submit" id="checkout-btn"
-                                    class="px-12 py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-3xl transition-all transform hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed"
-                                    disabled>Buy Tickets</button>
-                            @else
-                                <a href="{{ route('login') }}"
-                                    class="px-12 py-5 bg-gray-700 hover:bg-gray-600 text-white font-black rounded-3xl transition-all">Login
-                                    to Buy</a>
-                            @endauth
                         </div>
-                    </form>
+                    @else
+                        {{-- Public: seat-based booking --}}
+                        <div id="selected-tickets-container" class="space-y-3 mb-10"></div>
+
+                        <form action="{{ route('bookings.store') }}" method="POST" id="booking-form">
+                            @csrf
+                            <input type="hidden" name="showtime_id" value="{{ $currentShowtime?->id }}">
+                            <input type="hidden" name="selected_seats" id="seats-input">
+
+                            <div class="flex items-center justify-between pt-6 border-t border-white/5">
+                                <div>
+                                    <p class="text-[10px] uppercase font-black text-gray-500 mb-1">Total Price</p>
+                                    <p class="text-4xl font-black text-white">$<span id="total-display">0</span></p>
+                                </div>
+
+                                @auth
+                                    <button type="submit" id="checkout-btn"
+                                        class="px-12 py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-3xl transition-all transform hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed"
+                                        disabled>Buy Tickets</button>
+                                @else
+                                    <a href="{{ route('login') }}"
+                                        class="px-12 py-5 bg-gray-700 hover:bg-gray-600 text-white font-black rounded-3xl transition-all">Login
+                                        to Buy</a>
+                                @endauth
+                            </div>
+                        </form>
+                    @endif
                 </div>
 
-                {{-- Right Side: Seat Map --}}
+                {{-- Right Side: Seat Map or Private Room Info --}}
                 <div class="flex-1 p-10 bg-[#0d121f]/50">
-                    <div class="mb-20 px-10 text-center">
+                    <div class="mb-10 px-10 text-center">
                         <div class="w-full h-1.5 bg-indigo-500/20 rounded-full overflow-hidden mb-2">
                             <div
                                 class="w-full h-full bg-gradient-to-r from-transparent via-indigo-500 to-transparent blur-[1px]">
@@ -151,30 +182,67 @@
                             {{ $currentShowtime?->screen->name ?? 'Cinema Screen' }}</p>
                     </div>
 
-                    <div class="flex flex-col gap-4 max-w-2xl mx-auto">
-                        @foreach ($seatMap as $rowData)
-                            <div class="flex items-center gap-6">
-                                <span
-                                    class="w-4 text-[10px] font-black text-gray-700">{{ $rowData['row']->row_name }}</span>
-                                <div class="flex-1 flex justify-center gap-2">
-                                    @foreach ($rowData['seats'] as $seatData)
-                                        <button type="button" data-seat-id="{{ $seatData['model']->id }}"
-                                            data-row="{{ $rowData['row']->row_name }}"
-                                            data-num="{{ $seatData['model']->seat_number }}"
-                                            data-price="{{ $rowData['row']->price }}"
-                                            class="seat-trigger w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black transition-all
-                                            @if ($seatData['status'] === 'available') bg-[#1a2235] text-gray-500 hover:bg-indigo-600 hover:text-white 
-                                            @else bg-red-900/40 border border-red-800 text-red-500 cursor-not-allowed @endif"
-                                            @disabled($seatData['status'] !== 'available')>
-                                            {{ $seatData['model']->seat_number }}
-                                        </button>
-                                    @endforeach
-                                </div>
-                                <span
-                                    class="w-4 text-[10px] font-black text-gray-700">{{ $rowData['row']->row_name }}</span>
+                    @if ($currentShowtime && $currentShowtime->screen->screen_type === 'private')
+                        {{-- Private Room Details --}}
+                        @php
+                            $roomTypes = ['2p' => '2 Persons', '4p' => '4 Persons', '6p' => '6 Persons'];
+                            $roomType  = $currentShowtime->screen->room_type ?? '2p';
+                            $roomPrice = $currentShowtime->screen->privateRoomPrice;
+                        @endphp
+                        <div class="max-w-sm mx-auto flex flex-col items-center gap-6 mt-10">
+                            <div class="w-24 h-24 rounded-3xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                </svg>
                             </div>
-                        @endforeach
-                    </div>
+                            <div class="text-center">
+                                <p class="text-xl font-black text-white mb-1">Private Cinema Room</p>
+                                <p class="text-sm text-gray-400">Exclusively for you and your guests</p>
+                            </div>
+                            <div class="w-full grid grid-cols-2 gap-4">
+                                <div class="bg-[#1a2235] rounded-2xl p-4 text-center border border-white/5">
+                                    <p class="text-[10px] uppercase font-black text-gray-500 mb-1">Room Type</p>
+                                    <p class="text-lg font-black text-white">{{ $roomTypes[$roomType] ?? $roomType }}</p>
+                                </div>
+                                <div class="bg-[#1a2235] rounded-2xl p-4 text-center border border-white/5">
+                                    <p class="text-[10px] uppercase font-black text-gray-500 mb-1">Price</p>
+                                    <p class="text-lg font-black text-purple-400">{{ number_format($roomPrice?->price ?? 0) }} <span class="text-xs text-gray-500">MMK</span></p>
+                                </div>
+                            </div>
+                            <div class="w-full bg-purple-500/10 border border-purple-500/20 rounded-2xl p-4 text-center">
+                                <p class="text-xs text-purple-300 font-semibold">
+                                    🎬 Book the entire room for a private viewing experience.
+                                </p>
+                            </div>
+                        </div>
+                    @else
+                        {{-- Public Seat Map --}}
+                        <div class="flex flex-col gap-4 max-w-2xl mx-auto">
+                            @foreach ($seatMap as $rowData)
+                                <div class="flex items-center gap-6">
+                                    <span
+                                        class="w-4 text-[10px] font-black text-gray-700">{{ $rowData['row']->row_name }}</span>
+                                    <div class="flex-1 flex justify-center gap-2">
+                                        @foreach ($rowData['seats'] as $seatData)
+                                            <button type="button" data-seat-id="{{ $seatData['model']->id }}"
+                                                data-row="{{ $rowData['row']->row_name }}"
+                                                data-num="{{ $seatData['model']->seat_number }}"
+                                                data-price="{{ $rowData['row']->price }}"
+                                                class="seat-trigger w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black transition-all
+                                                @if ($seatData['status'] === 'available') bg-[#1a2235] text-gray-500 hover:bg-indigo-600 hover:text-white 
+                                                @else bg-red-900/40 border border-red-800 text-red-500 cursor-not-allowed @endif"
+                                                @disabled($seatData['status'] !== 'available')>
+                                                {{ $seatData['model']->seat_number }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                    <span
+                                        class="w-4 text-[10px] font-black text-gray-700">{{ $rowData['row']->row_name }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

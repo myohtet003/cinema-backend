@@ -26,7 +26,7 @@ class UserController extends Controller
 
         // 2. Get showtimes specifically for the selected day
         // We filter "future only" by comparing the full start_time timestamp against now()
-        $dayShowtimes = Showtime::with(['screen.cinema'])
+        $dayShowtimes = Showtime::with(['screen.cinema', 'screen.privateRoomPrice'])
             ->where('movie_id', $id)
             ->whereDate('show_date', $selectedDate)
             ->where('start_time', '>', now()) // This now correctly compares full date + time
