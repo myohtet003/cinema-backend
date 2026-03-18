@@ -16,7 +16,7 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    @if(Auth::user()->role === 'admin')
+                    @if(Auth::check() && Auth::user()->role === 'admin')
                         <x-nav-link :href="route('cinemas.index')" :active="request()->routeIs('cinemas.*')">
                             {{ __('Cinema') }}
                         </x-nav-link>
@@ -105,7 +105,7 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
 
-            @if(Auth::user()->role === 'admin')
+            @if(Auth::check() && Auth::user()->role === 'admin')
                 <x-responsive-nav-link :href="route('cinemas.index')" :active="request()->routeIs('cinemas.*')">
                     {{ __('Cinema') }}
                 </x-responsive-nav-link>
