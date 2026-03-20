@@ -29,8 +29,8 @@
                 <div class="hidden md:flex gap-8 text-xs font-extrabold uppercase tracking-[0.25em] text-neutral-400">
                     <a href="#" class="hover:text-white transition">Movies</a>
                     <a href="{{ route('cinemas') }}" class="hover:text-white transition">Cinemas</a>
-                    <a href="#" class="hover:text-white transition">Offers</a>
-                    <a href="#" class="hover:text-white transition">Experiences</a>
+{{--                    <a href="#" class="hover:text-white transition">Offers</a>--}}
+{{--                    <a href="#" class="hover:text-white transition">Experiences</a>--}}
                 </div>
             </div>
 
@@ -114,6 +114,11 @@
                 Find Movies
             </a>
         </div>
+        <div class="mt-4 text-center">
+            <a href="#private-cinemas" class="text-xs font-extrabold uppercase tracking-widest text-purple-300 hover:text-white transition">
+                Or Select Private Cinema
+            </a>
+        </div>
     </section>
 
     {{-- MOVIES --}}
@@ -159,6 +164,41 @@
             @endforeach
         </div>
     </main>
+
+    {{-- PRIVATE CINEMAS --}}
+    <section id="private-cinemas" class="max-w-7xl mx-auto px-6 pb-24">
+        <div class="mb-12">
+            <h2 class="text-4xl font-black uppercase tracking-tighter mb-2">Private Cinemas</h2>
+            <p class="text-neutral-500 font-medium">Select a private room cinema for your exclusive screening.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            @forelse ($privateCinemas as $cinema)
+                <a href="{{ route('schedule.show', $cinema->id) }}"
+                    class="group rounded-3xl border border-white/10 bg-white/5 p-6 hover:border-indigo-500/60 hover:bg-indigo-500/10 transition-all">
+                    <div class="flex items-center justify-between mb-6">
+                        <span
+                            class="px-3 py-1 rounded-full bg-purple-600/20 border border-purple-500/30 text-[10px] font-black uppercase tracking-widest text-purple-300">
+                            {{ strtoupper($cinema->type) }}
+                        </span>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-neutral-400">Select</span>
+                    </div>
+
+                    <h3 class="text-2xl font-black tracking-tight group-hover:text-indigo-300 transition mb-3">
+                        {{ $cinema->name }}
+                    </h3>
+                    <p class="text-neutral-400 text-sm mb-1">{{ $cinema->address }}</p>
+                    <p class="text-neutral-500 text-xs uppercase tracking-[0.2em]">{{ $cinema->city }}</p>
+                </a>
+            @empty
+                <div class="col-span-full py-12 text-center rounded-3xl border border-dashed border-white/10">
+                    <p class="text-neutral-600 font-black uppercase tracking-[0.3em] text-xs">
+                        No private cinemas available
+                    </p>
+                </div>
+            @endforelse
+        </div>
+    </section>
 
     {{-- MEMBERSHIP --}}
     <section class="bg-indigo-600/10 border-y border-indigo-500/20 py-24">

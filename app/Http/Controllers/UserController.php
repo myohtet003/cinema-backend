@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+
+use App\Models\Cinema;
 use App\Models\Movie;
 use App\Models\Showtime;
 use App\Services\SeatAvailabilityService;
@@ -13,7 +15,11 @@ class UserController extends Controller
     public function home()
     {
         $movies = Movie::where('status', 'now_showing')->get();
-        return view('welcome', compact('movies'));
+        $privateCinemas = Cinema::where('status', true)
+            ->whereIn('type', ['private', 'mixed'])
+            ->get();
+
+        return view('welcome', compact('movies', 'privateCinemas'));
     }
 
     public function showMovie(Request $request, $id, SeatAvailabilityService $seatService)

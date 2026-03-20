@@ -166,7 +166,7 @@
                                                     Pricing
                                                 </a>
                                             @endif
- 
+
 
                                             <a href="{{ route('screens.edit', $screen) }}"
                                                 class="text-indigo-600 hover:text-indigo-900 text-sm font-bold transition">Edit</a>
