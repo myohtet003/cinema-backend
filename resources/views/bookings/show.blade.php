@@ -99,7 +99,11 @@
                         </p>
                         <div class="mt-4">
                             <span
-                                class="px-6 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border {{ $booking->status === 'paid' ? 'border-green-500 text-green-500' : 'border-yellow-500 text-yellow-500' }}">
+                                class="px-6 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border
+                                {{ in_array($booking->status, ['paid', 'confirmed']) ? 'border-green-500 text-green-500' : '' }}
+                                {{ $booking->status === 'pending' ? 'border-amber-500 text-amber-500' : '' }}
+                                {{ $booking->status === 'expired' ? 'border-gray-500 text-gray-500' : '' }}
+                                {{ $booking->status === 'cancelled' ? 'border-red-500 text-red-500' : '' }}">
                                 ● {{ strtoupper($booking->status) }}
                             </span>
                         </div>

@@ -149,18 +149,20 @@
                                         @php
                                             $statusStyles = [
                                                 'paid' => 'bg-green-50 text-green-700 border-green-100',
+                                                'confirmed' => 'bg-green-50 text-green-700 border-green-100',
                                                 'pending' => 'bg-amber-50 text-amber-700 border-amber-100',
                                                 'cancelled' => 'bg-red-50 text-red-700 border-red-100',
                                                 'expired' => 'bg-gray-50 text-gray-700 border-gray-100',
                                             ];
                                             $dotStyles = [
                                                 'paid' => 'bg-green-500',
+                                                'confirmed' => 'bg-green-500',
                                                 'pending' => 'bg-amber-500 animate-pulse',
                                                 'cancelled' => 'bg-red-500',
                                                 'expired' => 'bg-gray-500',
                                             ];
-                                            $currentStyle = $statusStyles[$booking->status] ?? $statusStyles['pending'];
-                                            $currentDot = $dotStyles[$booking->status] ?? $dotStyles['pending'];
+                                            $currentStyle = $statusStyles[$booking->status] ?? $statusStyles['expired'];
+                                            $currentDot = $dotStyles[$booking->status] ?? $dotStyles['expired'];
                                         @endphp
                                         <span
                                             class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border {{ $currentStyle }}">

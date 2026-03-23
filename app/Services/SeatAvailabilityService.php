@@ -15,7 +15,13 @@ class SeatAvailabilityService
         // Seats that are already PAID / CONFIRMED
         $bookedSeatIds = BookingSeat::whereHas('booking', function ($q) use ($showtime) {
             $q->where('showtime_id', $showtime->id)
-                ->whereIn('status', ['paid', 'confirmed']);
+                ->where(function ($query) {
+                    $query->whereIn('status', ['paid', 'confirmed'])
+                        ->orWhere(function ($pendingWithPayment) {
+                            $pendingWithPayment->where('status', 'pending')
+                                ->whereHas('payment');
+                        });
+                });
         })->pluck('seat_id')->toArray();
 
         // Seats that are TEMP LOCKED (not expired)

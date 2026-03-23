@@ -218,6 +218,21 @@
                         </div>
                     @else
                         {{-- Public Seat Map --}}
+                        <div class="max-w-2xl mx-auto mb-6 flex items-center justify-center gap-6 text-[10px] font-bold uppercase tracking-wider">
+                            <div class="flex items-center gap-2 text-gray-400">
+                                <span class="w-3 h-3 rounded bg-[#1a2235] border border-white/10"></span>
+                                Available
+                            </div>
+                            <div class="flex items-center gap-2 text-yellow-400">
+                                <span class="w-3 h-3 rounded bg-yellow-900/40 border border-yellow-700"></span>
+                                3-min Hold
+                            </div>
+                            <div class="flex items-center gap-2 text-red-400">
+                                <span class="w-3 h-3 rounded bg-red-900/40 border border-red-800"></span>
+                                Paid/Booked
+                            </div>
+                        </div>
+
                         <div class="flex flex-col gap-4 max-w-2xl mx-auto">
                             @foreach ($seatMap as $rowData)
                                 <div class="flex items-center gap-6">
@@ -230,7 +245,8 @@
                                                 data-num="{{ $seatData['model']->seat_number }}"
                                                 data-price="{{ $rowData['row']->price }}"
                                                 class="seat-trigger w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black transition-all
-                                                @if ($seatData['status'] === 'available') bg-[#1a2235] text-gray-500 hover:bg-indigo-600 hover:text-white 
+                                                @if ($seatData['status'] === 'available') bg-[#1a2235] text-gray-500 hover:bg-indigo-600 hover:text-white
+                                                @elseif ($seatData['status'] === 'locked') bg-yellow-900/40 border border-yellow-700 text-yellow-400 cursor-not-allowed
                                                 @else bg-red-900/40 border border-red-800 text-red-500 cursor-not-allowed @endif"
                                                 @disabled($seatData['status'] !== 'available')>
                                                 {{ $seatData['model']->seat_number }}

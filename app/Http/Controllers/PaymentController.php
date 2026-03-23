@@ -4,15 +4,32 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\SeatLock;
 use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
+    private const PUBLIC_SEAT_HOLD_MINUTES = 3;
+
     public function paymentPage(Booking $booking)
     {
         if (auth()->user()->role !== 'admin' && $booking->user_id !== auth()->id()) {
             abort(403);
+        }
+
+        if (
+            $booking->booking_type === 'public' &&
+            $booking->status === 'pending' &&
+            ! $booking->payment &&
+            $booking->created_at <= now()->subMinutes(self::PUBLIC_SEAT_HOLD_MINUTES)
+        ) {
+            $booking->update(['status' => 'expired']);
+
+            SeatLock::where('showtime_id', $booking->showtime_id)
+                ->where('user_id', $booking->user_id)
+                ->whereIn('seat_id', $booking->bookingSeats()->pluck('seat_id'))
+                ->delete();
         }
 
         if ($booking->status !== 'pending') {
@@ -56,7 +73,13 @@ class PaymentController extends Controller
             'status'            => 'pending',
         ]);
 
-        // 3. Update the booking status 
+        // 3. Release temp locks once payment info is submitted.
+        SeatLock::where('showtime_id', $booking->showtime_id)
+            ->where('user_id', $booking->user_id)
+            ->whereIn('seat_id', $booking->bookingSeats()->pluck('seat_id'))
+            ->delete();
+
+        // 4. Update the booking status
         // Usually, we keep booking as 'pending' until the Admin approves the Transaction ID
         $booking->update(['status' => 'pending']);
 

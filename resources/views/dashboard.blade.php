@@ -77,8 +77,10 @@
                                 @php
                                     $statusColors = [
                                         'paid' => 'text-green-600 bg-green-50',
+                                        'confirmed' => 'text-green-600 bg-green-50',
                                         'pending' => 'text-amber-600 bg-amber-50',
                                         'cancelled' => 'text-red-600 bg-red-50',
+                                        'expired' => 'text-gray-600 bg-gray-50',
                                     ];
                                     $currentStatus = $statusColors[$booking->status] ?? 'text-gray-600 bg-gray-50';
                                 @endphp

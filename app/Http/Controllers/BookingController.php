@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
+    private const PUBLIC_SEAT_HOLD_MINUTES = 3;
+
     /**
      * Display a listing of the resource.
      * Admin sees all bookings; regular users see only their own.
@@ -78,10 +80,32 @@ class BookingController extends Controller
 
         try {
             $booking = DB::transaction(function () use ($seatIds, $showtime) {
+                SeatLock::where('expires_at', '<=', now())->delete();
+
+                // Expire old unpaid pending holds so seats become available again.
+                $expiredBookingIds = Booking::where('showtime_id', $showtime->id)
+                    ->where('booking_type', 'public')
+                    ->where('status', 'pending')
+                    ->whereDoesntHave('payment')
+                    ->where('created_at', '<=', now()->subMinutes(self::PUBLIC_SEAT_HOLD_MINUTES))
+                    ->pluck('id');
+
+                if ($expiredBookingIds->isNotEmpty()) {
+                    Booking::whereIn('id', $expiredBookingIds)->update(['status' => 'expired']);
+                }
 
                 // 1. Check if seats are already booked
                 $alreadyBooked = BookingSeat::whereIn('seat_id', $seatIds)
-                    ->whereHas('booking', fn($q) => $q->where('showtime_id', $showtime->id)->whereIn('status', ['paid', 'confirmed']))
+                    ->whereHas('booking', function ($q) use ($showtime) {
+                        $q->where('showtime_id', $showtime->id)
+                            ->where(function ($query) {
+                                $query->whereIn('status', ['paid', 'confirmed'])
+                                    ->orWhere(function ($pendingWithPayment) {
+                                        $pendingWithPayment->where('status', 'pending')
+                                            ->whereHas('payment');
+                                    });
+                            });
+                    })
                     ->exists();
                 if ($alreadyBooked) abort(409, 'One or more seats are already booked.');
 
@@ -104,13 +128,13 @@ class BookingController extends Controller
                     'status' => 'pending',
                 ]);
 
-                // 5. Lock seats for 10 minutes
+                // 5. Lock seats for a short checkout window
                 foreach ($seatIds as $seatId) {
                     SeatLock::create([
                         'showtime_id' => $showtime->id,
                         'seat_id' => $seatId,
                         'user_id' => auth()->id(),
-                        'expires_at' => now()->addMinutes(10),
+                        'expires_at' => now()->addMinutes(self::PUBLIC_SEAT_HOLD_MINUTES),
                     ]);
                 }
 
@@ -126,7 +150,7 @@ class BookingController extends Controller
             });
 
             return redirect()->route('payments.create', $booking->id)
-                ->with('success', 'Seats reserved. Please complete payment.');
+                ->with('success', 'Seats reserved for 3 minutes. Please complete payment.');
         } catch (\Throwable $e) {
             return back()->with('error', 'Something went wrong: ' . $e->getMessage());
         }
