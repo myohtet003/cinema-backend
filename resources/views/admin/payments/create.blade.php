@@ -140,7 +140,7 @@
                         {{-- MOVIE --}}
                         <div class="flex gap-4 mb-8">
                             <div class="w-20 aspect-[2/3] bg-gray-800 rounded overflow-hidden">
-                                @if ($booking->showtime->movie->poster)
+                                @if ($booking->booking_type !== 'private' && $booking->showtime->movie->poster)
                                     <img src="{{ asset('storage/' . $booking->showtime->movie->poster) }}"
                                         class="w-full h-full object-cover">
                                 @endif
@@ -148,7 +148,7 @@
 
                             <div>
                                 <h4 class="font-bold uppercase text-lg">
-                                    {{ $booking->showtime->movie->title }}
+                                    {{ $booking->booking_type === 'private' ? 'Private Cinema Experience' : $booking->showtime->movie->title }}
                                 </h4>
                                 <p class="text-xs text-gray-400 mt-2 uppercase tracking-widest">
                                     {{ $booking->showtime->screen->cinema->name }} <br>

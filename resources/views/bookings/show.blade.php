@@ -20,7 +20,7 @@
                     {{-- MOVIE & THEATER INFO --}}
                     <div class="text-center">
                         <h2 class="text-xl font-extrabold uppercase leading-tight text-black">
-                            {{ $booking->showtime->movie->title }}
+                            {{ $booking->booking_type === 'private' ? 'Private Cinema Experience' : $booking->showtime->movie->title }}
                         </h2>
                         <div class="mt-2 text-gray-600">
                             <p class="text-xs font-bold">{{ $booking->showtime->screen->cinema->name }}</p>

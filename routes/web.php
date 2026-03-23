@@ -22,6 +22,7 @@ Route::get('/dashboard', [DashboardController::class, 'dashboard'])->middleware(
 
 Route::get('/cinemas', [UserController::class, 'index'])->name('cinemas');
 Route::get('/schedule/{cinema}', [UserController::class, 'showSchedule'])->name('schedule.show');
+Route::get('/private-schedule/{cinema}', [UserController::class, 'showPrivateSchedule'])->name('schedule.private');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -29,22 +30,23 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::resource('cinemas', CinemaController::class);
     Route::resource('screens', ScreenController::class);
     Route::resource('screens.seat_rows', SeatRowController::class);
     Route::resource('movies', MovieController::class);
     Route::resource('showtimes', ShowtimeController::class);
-    Route::resource('bookings', BookingController::class);
     Route::resource('payment_methods', PaymentMethodController::class);
-
-    Route::get('/payments/{booking}/create', [PaymentController::class, 'paymentPage'])->name('payments.create');
-
-    Route::post('payment/process', [PaymentController::class, 'store'])->name('payments.store');
 });
 // Ensure this matches your controller path
 
 Route::middleware(['auth'])->group(function () {
+    Route::resource('bookings', BookingController::class);
+    Route::get('/payments/{booking}/create', [PaymentController::class, 'paymentPage'])->name('payments.create');
+    Route::post('/payment/process', [PaymentController::class, 'store'])->name('payments.store');
+});
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::patch('/admin/bookings/{booking}/approve', [BookingController::class, 'approve'])->name('admin.bookings.approve');
     Route::patch('/admin/bookings/{booking}/reject', [BookingController::class, 'reject'])->name('admin.bookings.reject');
 });

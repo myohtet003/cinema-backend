@@ -62,7 +62,7 @@
                                     </td>
 
                                     <td class="px-6 py-4">
-                                        <div class="text-sm font-bold text-gray-800">{{ $booking->showtime->movie->title }}</div>
+                                        <div class="text-sm font-bold text-gray-800">{{ $booking->booking_type === 'private' ? 'Private Cinema Experience' : $booking->showtime->movie->title }}</div>
                                         <div class="text-xs text-gray-400">
                                             {{ \Carbon\Carbon::parse($booking->showtime->show_date)->format('d M Y') }}
                                             · {{ \Carbon\Carbon::parse($booking->showtime->start_time)->format('h:i A') }}

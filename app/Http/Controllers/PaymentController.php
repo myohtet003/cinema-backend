@@ -11,8 +11,12 @@ class PaymentController extends Controller
 {
     public function paymentPage(Booking $booking)
     {
+        if (auth()->user()->role !== 'admin' && $booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         if ($booking->status !== 'pending') {
-            return redirect()->route('showtimes.show', $booking->showtime_id)
+            return redirect()->route('bookings.show', $booking->id)
                 ->with('error', 'This booking is already paid or expired.');
         }
 
@@ -34,6 +38,10 @@ class PaymentController extends Controller
         ]);
 
         $booking = Booking::findOrFail($request->booking_id);
+
+        if (auth()->user()->role !== 'admin' && $booking->user_id !== auth()->id()) {
+            abort(403);
+        }
 
         // 1. Safety check
         if ($booking->status !== 'pending') {

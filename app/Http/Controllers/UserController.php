@@ -85,4 +85,23 @@ class UserController extends Controller
 
         return view('schedule', compact('cinema', 'movies'));
     }
+
+    public function showPrivateSchedule($id)
+    {
+        $cinema = Cinema::where('status', true)
+            ->whereIn('type', ['private', 'mixed'])
+            ->findOrFail($id);
+
+        $showtimes = Showtime::withoutGlobalScope('upcoming')
+            ->with(['movie', 'screen.privateRoomPrice'])
+            ->whereHas('screen', function ($query) use ($id) {
+                $query->where('cinema_id', $id)->where('screen_type', 'private');
+            })
+            ->whereDate('show_date', '>=', now()->toDateString())
+            ->orderBy('show_date')
+            ->orderBy('start_time')
+            ->get();
+
+        return view('private-schedule', compact('cinema', 'showtimes'));
+    }
 }

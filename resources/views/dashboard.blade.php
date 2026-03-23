@@ -22,7 +22,7 @@
                             {{-- Compact Poster --}}
                             <div
                                 class="relative h-20 w-14 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 shadow-inner">
-                                @if ($booking->showtime->movie->poster)
+                                @if ($booking->booking_type !== 'private' && $booking->showtime->movie->poster)
                                     <img src="{{ asset('storage/' . $booking->showtime->movie->poster) }}"
                                         class="h-full w-full object-cover">
                                 @endif
@@ -34,7 +34,7 @@
                             <div class="flex-1 min-w-0">
                                 <h3
                                     class="text-base font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">
-                                    {{ $booking->showtime->movie->title }}
+                                    {{ $booking->booking_type === 'private' ? 'Private Cinema Experience' : $booking->showtime->movie->title }}
                                 </h3>
                                 <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
                                     <span class="text-[11px] font-medium text-gray-500 flex items-center gap-1">

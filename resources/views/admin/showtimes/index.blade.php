@@ -70,13 +70,13 @@
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-3">
                                             <div class="h-10 w-8 rounded bg-gray-100 flex-shrink-0 overflow-hidden">
-                                                @if ($showtime->movie->poster)
+                                                @if ($showtime->movie && $showtime->movie->poster)
                                                     <img src="{{ asset('storage/' . $showtime->movie->poster) }}"
                                                         class="h-full w-full object-cover">
                                                 @endif
                                             </div>
                                             <span class="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition">
-                                                {{ $showtime->movie->title }}
+                                                {{ $showtime->movie->title ?? 'Private Time Slot' }}
                                             </span>
                                         </div>
                                     </td>

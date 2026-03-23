@@ -19,7 +19,7 @@
                 class="flex flex-col md:flex-row md:items-center justify-between mb-12 border-l-4 border-indigo-600 pl-6">
                 <div>
                     <h1 class="text-3xl mb-3 font-black">
-                        {{ $showtime->movie->title }}
+                        {{ $showtime->movie->title ?? 'Private Time Slot' }}
                     </h1>
                     <p class="text-gray-400 font-medium">
                         {{ $showtime->screen->name }} •

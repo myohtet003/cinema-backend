@@ -93,7 +93,7 @@
                                         <div class="flex items-center gap-4">
                                             <div onclick="window.location='{{ route('bookings.show', $booking) }}'"
                                                 class="h-16 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100 border border-gray-100 shadow-sm transition group-hover:shadow-md">
-                                                @if ($booking->showtime->movie->poster)
+                                                @if ($booking->booking_type !== 'private' && $booking->showtime->movie->poster)
                                                     <img src="{{ asset('storage/' . $booking->showtime->movie->poster) }}"
                                                         class="h-full w-full object-cover">
                                                 @else
@@ -110,7 +110,7 @@
                                             <div>
                                                 <div onclick="window.location='{{ route('bookings.show', $booking) }}'"
                                                     class="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition">
-                                                    {{ $booking->showtime->movie->title }}
+                                                    {{ $booking->booking_type === 'private' ? 'Private Cinema Experience' : $booking->showtime->movie->title }}
                                                 </div>
                                                 <div class="text-[11px] text-gray-500 font-medium mt-1">
                                                     {{ \Carbon\Carbon::parse($booking->showtime->start_time)->format('D, d M Y | h:i A') }}
@@ -177,49 +177,8 @@
                                                 View Slip
                                             </a>
 
-                                            {{-- @if ($booking->status === 'pending')
-                                                <form action="{{ route('admin.bookings.approve', $booking->id) }}"
-                                                    method="POST">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit"
-                                                        class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-xs font-bold rounded-lg hover:bg-green-700 transition shadow-sm">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1"
-                                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="3" d="M5 13l4 4L19 7" />
-                                                        </svg>
-                                                        Approve Payment
-                                                    </button>
-                                                </form>
-                                            @endif --}}
-
                                             <div class="flex justify-end items-center gap-2">
-                                                @if ($booking->status === 'pending')
-                                                    {{-- APPROVE BUTTON --}}
-                                                    <form action="{{ route('admin.bookings.approve', $booking->id) }}"
-                                                        method="POST">
-                                                        @csrf @method('PATCH')
-                                                        <button type="submit"
-                                                            class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-700 transition">
-                                                            Approve
-                                                        </button>
-                                                    </form>
-
-                                                    {{-- REJECT / WRONG TXN BUTTON --}}
-                                                    <form action="{{ route('admin.bookings.reject', $booking->id) }}"
-                                                        method="POST"
-                                                        onsubmit="return confirm('Reject this booking due to wrong transaction number?')">
-                                                        @csrf @method('PATCH')
-                                                        <button type="submit"
-                                                            class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white transition">
-                                                            Wrong TXN
-                                                        </button>
-                                                    </form>
-                                                @else
-                                                    <span
-                                                        class="text-gray-400 text-xs italic uppercase">Processed</span>
-                                                @endif
+                                                <span class="text-gray-400 text-xs italic uppercase">User View</span>
                                             </div>
 
                                             {{-- Only show cancel if pending --}}

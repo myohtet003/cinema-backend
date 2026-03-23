@@ -39,8 +39,17 @@ class ShowtimeController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'movie_id' => 'required|exists:movies,id',
+        $validated = $request->validate([
+            'movie_id' => [
+                'nullable',
+                'exists:movies,id',
+                function ($attribute, $value, $fail) use ($request) {
+                    $screen = Screen::find($request->screen_id);
+                    if ($screen && $screen->screen_type === 'public' && empty($value)) {
+                        $fail('Movie is required for public screens.');
+                    }
+                },
+            ],
             'screen_id' => 'required|exists:screens,id',
             'show_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required',
@@ -49,7 +58,7 @@ class ShowtimeController extends Controller
 
         // Add logic here to check if the screen is already busy during this time range
 
-        Showtime::create($request->all());
+        Showtime::create($validated);
 
         return redirect()->route('showtimes.index')->with('success', 'Showtime scheduled!');
     }
@@ -86,7 +95,16 @@ class ShowtimeController extends Controller
     public function update(Request $request, Showtime $showtime)
     {
         $validated = $request->validate([
-            'movie_id' => 'required|exists:movies,id',
+            'movie_id' => [
+                'nullable',
+                'exists:movies,id',
+                function ($attribute, $value, $fail) use ($request) {
+                    $screen = Screen::find($request->screen_id);
+                    if ($screen && $screen->screen_type === 'public' && empty($value)) {
+                        $fail('Movie is required for public screens.');
+                    }
+                },
+            ],
             'screen_id' => 'required|exists:screens,id',
             'show_date' => 'required|date',
             'start_time' => 'required',

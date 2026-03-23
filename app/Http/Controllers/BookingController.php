@@ -190,6 +190,10 @@ class BookingController extends Controller
      */
     public function show(Booking $booking)
     {
+        if (auth()->user()->role !== 'admin' && $booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         $booking->load(['showtime.movie', 'showtime.screen.cinema', 'bookingSeats.seat.seatRow', 'payment.paymentMethod', 'privateRoom.screen']);
         return view('bookings.show', compact('booking'));
     }
@@ -216,6 +220,11 @@ class BookingController extends Controller
     public function destroy(string $id)
     {
         $booking = Booking::findOrFail($id);
+
+        if (auth()->user()->role !== 'admin' && $booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         $booking->delete();
         return redirect()->route('bookings.index')->with('success', 'Booking deleted successfully.');
     }

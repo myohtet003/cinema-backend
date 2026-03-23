@@ -174,7 +174,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             @forelse ($privateCinemas as $cinema)
-                <a href="{{ route('schedule.show', $cinema->id) }}"
+                <a href="{{ route('schedule.private', $cinema->id) }}"
                     class="group rounded-3xl border border-white/10 bg-white/5 p-6 hover:border-indigo-500/60 hover:bg-indigo-500/10 transition-all">
                     <div class="flex items-center justify-between mb-6">
                         <span

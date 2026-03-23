@@ -2,7 +2,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {{-- Select Movie --}}
         <div>
-            <label for="movie_id" class="block text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wider">Select Movie</label>
+            <label for="movie_id" class="block text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wider">Select Movie (Optional for Private Screen)</label>
             <select name="movie_id" id="movie_id" 
                 class="w-full border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm transition @error('movie_id') border-red-500 @enderror">
                 <option value="">-- Choose a Movie --</option>
@@ -12,6 +12,7 @@
                     </option>
                 @endforeach
             </select>
+            <p class="mt-1 text-[10px] text-gray-400 italic">Movie is required only when screen type is Public.</p>
             @error('movie_id') <p class="mt-1 text-xs text-red-600 font-medium">{{ $message }}</p> @enderror
         </div>
 

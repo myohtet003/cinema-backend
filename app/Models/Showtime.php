@@ -16,7 +16,9 @@ class Showtime extends Model
 
     public function movie()
     {
-        return $this->belongsTo(Movie::class);
+        return $this->belongsTo(Movie::class)->withDefault([
+            'title' => 'Private Time Slot',
+        ]);
     }
 
     public function screen()

@@ -30,7 +30,7 @@
                     ✏️ Edit Schedule
                 </h2>
                 <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">
-                    {{ $showtime->movie->title }} • {{ $showtime->screen->name }}
+                    {{ $showtime->movie->title ?? 'Private Time Slot' }} • {{ $showtime->screen->name }}
                 </p>
             </div>
         </div>

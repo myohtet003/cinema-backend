@@ -146,9 +146,9 @@
 
                             <div class="mt-12">
                                 {{-- Change this line in your index.blade.php --}}
-                                <a href="{{ route('schedule.show', $cinema->id) }}"
+                                <a href="{{ in_array($cinema->type, ['private', 'mixed']) ? route('schedule.private', $cinema->id) : route('schedule.show', $cinema->id) }}"
                                    class="group/btn relative overflow-hidden flex items-center justify-center w-full py-5 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-300 hover:bg-indigo-600 hover:text-white">
-                                    View Schedule
+                                    {{ in_array($cinema->type, ['private', 'mixed']) ? 'Book by Time' : 'View Schedule' }}
                                 </a>
                             </div>
                         </div>
