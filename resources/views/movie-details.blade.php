@@ -143,6 +143,10 @@
                         </div>
                     @else
                         {{-- Public: seat-based booking --}}
+                        <div id="seat-sync-banner"
+                            class="hidden mb-4 p-3 rounded-xl border border-yellow-700 bg-yellow-900/30 text-yellow-300 text-xs font-semibold">
+                            Seat availability changed. Your selected seats were updated.
+                        </div>
                         <div id="selected-tickets-container" class="space-y-3 mb-10"></div>
 
                         <form action="{{ route('bookings.store') }}" method="POST" id="booking-form">
@@ -267,6 +271,11 @@
     <script>
         // Unique key for this movie and showtime
         const storageKey = 'cinematix_pending_{{ $movie->id }}_{{ $currentShowtime?->id }}';
+        const showtimeId = {{ $currentShowtime?->id ?? 'null' }};
+        const seatStatusUrl = showtimeId ? '{{ route('showtimes.seat-status', ['showtime' => '__SHOWTIME__']) }}'.replace(
+            '__SHOWTIME__',
+            showtimeId
+        ) : null;
 
         // Restore from LocalStorage on refresh or redirect back from login
         const savedData = JSON.parse(localStorage.getItem(storageKey)) || [];
@@ -276,17 +285,68 @@
         const checkoutBtn = document.getElementById('checkout-btn');
         const ticketsContainer = document.getElementById('selected-tickets-container');
         const seatsInput = document.getElementById('seats-input');
+        const seatSyncBanner = document.getElementById('seat-sync-banner');
+
+        function seatClassByStatus(status) {
+            if (status === 'available') {
+                return [
+                    'bg-[#1a2235]',
+                    'text-gray-500',
+                    'hover:bg-indigo-600',
+                    'hover:text-white'
+                ];
+            }
+
+            if (status === 'locked') {
+                return ['bg-yellow-900/40', 'border', 'border-yellow-700', 'text-yellow-400', 'cursor-not-allowed'];
+            }
+
+            return ['bg-red-900/40', 'border', 'border-red-800', 'text-red-500', 'cursor-not-allowed'];
+        }
+
+        function setSeatVisualStatus(button, status) {
+            button.className =
+                'seat-trigger w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black transition-all';
+
+            seatClassByStatus(status).forEach(cls => button.classList.add(cls));
+            button.disabled = status !== 'available';
+        }
+
+        function hideSeatBanner() {
+            if (!seatSyncBanner) {
+                return;
+            }
+
+            setTimeout(() => {
+                seatSyncBanner.classList.add('hidden');
+            }, 3000);
+        }
+
+        function showSeatBanner() {
+            if (!seatSyncBanner) {
+                return;
+            }
+
+            seatSyncBanner.classList.remove('hidden');
+            hideSeatBanner();
+        }
 
         // Sync UI on Load
         document.addEventListener('DOMContentLoaded', () => {
             selectedSeats.forEach((data, id) => {
                 const btn = document.querySelector(`[data-seat-id="${id}"]`);
                 if (btn) {
-                    btn.classList.replace('bg-[#1a2235]', 'bg-indigo-600');
-                    btn.classList.replace('text-gray-500', 'text-white');
+                    if (!btn.disabled) {
+                        btn.classList.replace('bg-[#1a2235]', 'bg-indigo-600');
+                        btn.classList.replace('text-gray-500', 'text-white');
+                    }
                 }
             });
             updateUI();
+            syncSeatStatuses();
+            if (seatStatusUrl) {
+                setInterval(syncSeatStatuses, 5000);
+            }
         });
 
         document.querySelectorAll('.seat-trigger').forEach(btn => {
@@ -297,6 +357,9 @@
                     this.classList.replace('bg-indigo-600', 'bg-[#1a2235]');
                     this.classList.replace('text-white', 'text-gray-500');
                 } else {
+                    if (this.disabled) {
+                        return;
+                    }
                     selectedSeats.set(id, {
                         price: parseInt(this.dataset.price),
                         row: this.dataset.row,
@@ -337,6 +400,55 @@
         window.removeSeat = (id) => {
             const btn = document.querySelector(`[data-seat-id="${id}"]`);
             if (btn) btn.click();
+        }
+
+        async function syncSeatStatuses() {
+            if (!seatStatusUrl) {
+                return;
+            }
+
+            try {
+                const response = await fetch(seatStatusUrl, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const payload = await response.json();
+                const seatStatuses = payload.seats || {};
+                let removedAnySeat = false;
+
+                document.querySelectorAll('.seat-trigger').forEach(btn => {
+                    const seatId = btn.dataset.seatId;
+                    const status = seatStatuses[seatId] || 'available';
+
+                    if (selectedSeats.has(seatId) && status !== 'available') {
+                        selectedSeats.delete(seatId);
+                        removedAnySeat = true;
+                    }
+
+                    if (selectedSeats.has(seatId)) {
+                        btn.className =
+                            'seat-trigger w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black transition-all bg-indigo-600 text-white';
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    setSeatVisualStatus(btn, status);
+                });
+
+                if (removedAnySeat) {
+                    localStorage.setItem(storageKey, JSON.stringify(Array.from(selectedSeats.entries())));
+                    updateUI();
+                    showSeatBanner();
+                }
+            } catch (error) {
+                console.error('Seat status sync failed:', error);
+            }
         }
 
         // Clear storage only on successful purchase

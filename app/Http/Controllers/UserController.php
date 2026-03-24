@@ -9,6 +9,7 @@ use App\Models\Movie;
 use App\Models\Showtime;
 use App\Services\SeatAvailabilityService;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
 {
@@ -103,5 +104,24 @@ class UserController extends Controller
             ->get();
 
         return view('private-schedule', compact('cinema', 'showtimes'));
+    }
+
+    public function showtimeSeatStatus(Showtime $showtime, SeatAvailabilityService $seatService)
+    {
+        $showtime->load('screen.seatRows.seats');
+
+        $statuses = $seatService->getSeatStatuses($showtime);
+        $seatIdsInScreen = $showtime->screen->seatRows
+            ->flatMap(fn ($row) => $row->seats->pluck('id'))
+            ->values();
+
+        $seats = $seatIdsInScreen->mapWithKeys(function ($seatId) use ($statuses) {
+            return [$seatId => $statuses[$seatId] ?? 'available'];
+        });
+
+        return response()->json([
+            'showtime_id' => $showtime->id,
+            'seats' => $seats,
+        ], Response::HTTP_OK);
     }
 }

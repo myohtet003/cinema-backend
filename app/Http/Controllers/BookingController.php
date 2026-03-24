@@ -12,6 +12,7 @@ use App\Models\SeatLock;
 use App\Models\Seat;
 use App\Models\Showtime;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class BookingController extends Controller
 {
@@ -82,6 +83,9 @@ class BookingController extends Controller
             $booking = DB::transaction(function () use ($seatIds, $showtime) {
                 SeatLock::where('expires_at', '<=', now())->delete();
 
+                Showtime::where('id', $showtime->id)->lockForUpdate()->first();
+                Seat::whereIn('id', $seatIds)->lockForUpdate()->get();
+
                 // Expire old unpaid pending holds so seats become available again.
                 $expiredBookingIds = Booking::where('showtime_id', $showtime->id)
                     ->where('booking_type', 'public')
@@ -99,7 +103,7 @@ class BookingController extends Controller
                     ->whereHas('booking', function ($q) use ($showtime) {
                         $q->where('showtime_id', $showtime->id)
                             ->where(function ($query) {
-                                $query->whereIn('status', ['paid', 'confirmed'])
+                                $query->whereIn('status', ['paid'])
                                     ->orWhere(function ($pendingWithPayment) {
                                         $pendingWithPayment->where('status', 'pending')
                                             ->whereHas('payment');
@@ -107,14 +111,19 @@ class BookingController extends Controller
                             });
                     })
                     ->exists();
-                if ($alreadyBooked) abort(409, 'One or more seats are already booked.');
+                if ($alreadyBooked) {
+                    throw new HttpException(409, 'One or more seats are already booked.');
+                }
 
                 // 2. Check if seats are locked
                 $locked = SeatLock::where('showtime_id', $showtime->id)
                     ->whereIn('seat_id', $seatIds)
                     ->where('expires_at', '>', now())
+                    ->lockForUpdate()
                     ->exists();
-                if ($locked) return back()->with('error', 'One or more seats are temporarily locked.');
+                if ($locked) {
+                    throw new HttpException(409, 'One or more seats are temporarily locked.');
+                }
 
                 // 3. Calculate total price
                 $totalPrice = Seat::whereIn('id', $seatIds)->with('seatRow')->get()->sum(fn($seat) => $seat->seatRow->price);
@@ -130,12 +139,18 @@ class BookingController extends Controller
 
                 // 5. Lock seats for a short checkout window
                 foreach ($seatIds as $seatId) {
-                    SeatLock::create([
+                    SeatLock::updateOrCreate(
+                        [
+                            'showtime_id' => $showtime->id,
+                            'seat_id' => $seatId,
+                        ],
+                        [
                         'showtime_id' => $showtime->id,
                         'seat_id' => $seatId,
                         'user_id' => auth()->id(),
                         'expires_at' => now()->addMinutes(self::PUBLIC_SEAT_HOLD_MINUTES),
-                    ]);
+                        ]
+                    );
                 }
 
                 // 6. Save booking seats
@@ -151,6 +166,8 @@ class BookingController extends Controller
 
             return redirect()->route('payments.create', $booking->id)
                 ->with('success', 'Seats reserved for 3 minutes. Please complete payment.');
+        } catch (HttpException $e) {
+            return back()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
             return back()->with('error', 'Something went wrong: ' . $e->getMessage());
         }

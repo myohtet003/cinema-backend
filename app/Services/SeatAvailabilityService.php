@@ -8,44 +8,55 @@ use App\Models\Showtime;
 
 class SeatAvailabilityService
 {
-    public function get(Showtime $showtime)
+    public function getSeatStatuses(Showtime $showtime): array
     {
-        $showtime->load('screen.seatRows.seats');
+        SeatLock::where('showtime_id', $showtime->id)
+            ->where('expires_at', '<=', now())
+            ->delete();
 
-        // Seats that are already PAID / CONFIRMED
         $bookedSeatIds = BookingSeat::whereHas('booking', function ($q) use ($showtime) {
             $q->where('showtime_id', $showtime->id)
                 ->where(function ($query) {
-                    $query->whereIn('status', ['paid', 'confirmed'])
+                    $query->whereIn('status', ['paid'])
                         ->orWhere(function ($pendingWithPayment) {
                             $pendingWithPayment->where('status', 'pending')
                                 ->whereHas('payment');
                         });
                 });
-        })->pluck('seat_id')->toArray();
+        })->pluck('seat_id')->all();
 
-        // Seats that are TEMP LOCKED (not expired)
         $lockedSeatIds = SeatLock::where('showtime_id', $showtime->id)
             ->where('expires_at', '>', now())
             ->pluck('seat_id')
-            ->toArray();
+            ->all();
 
-        return $showtime->screen->seatRows->map(function ($row) use ($bookedSeatIds, $lockedSeatIds) {
+        $statuses = [];
+
+        foreach ($bookedSeatIds as $seatId) {
+            $statuses[$seatId] = 'booked';
+        }
+
+        foreach ($lockedSeatIds as $seatId) {
+            if (! isset($statuses[$seatId])) {
+                $statuses[$seatId] = 'locked';
+            }
+        }
+
+        return $statuses;
+    }
+
+    public function get(Showtime $showtime)
+    {
+        $showtime->load('screen.seatRows.seats');
+        $statuses = $this->getSeatStatuses($showtime);
+
+        return $showtime->screen->seatRows->map(function ($row) use ($statuses) {
             return [
                 'row' => $row,
-                'seats' => $row->seats->map(function ($seat) use ($bookedSeatIds, $lockedSeatIds) {
-
-                    if (in_array($seat->id, $bookedSeatIds)) {
-                        $status = 'booked';
-                    } elseif (in_array($seat->id, $lockedSeatIds)) {
-                        $status = 'locked';
-                    } else {
-                        $status = 'available';
-                    }
-
+                'seats' => $row->seats->map(function ($seat) use ($statuses) {
                     return [
                         'model' => $seat,
-                        'status' => $status,
+                        'status' => $statuses[$seat->id] ?? 'available',
                     ];
                 }),
             ];

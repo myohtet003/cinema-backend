@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [UserController::class, 'home'])->name('home');
 
 Route::get('/movie/{id}', [UserController::class, 'showMovie'])->name('movie.show');
+Route::get('/showtimes/{showtime}/seat-status', [UserController::class, 'showtimeSeatStatus'])
+    ->name('showtimes.seat-status');
 
 Route::get('/dashboard', [DashboardController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
 
