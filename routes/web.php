@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\SeatRowController;
 use App\Http\Controllers\Admin\ShowtimeController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -25,6 +26,7 @@ Route::get('/dashboard', [DashboardController::class, 'dashboard'])->middleware(
 Route::get('/cinemas', [UserController::class, 'index'])->name('cinemas');
 Route::get('/schedule/{cinema}', [UserController::class, 'showSchedule'])->name('schedule.show');
 Route::get('/private-schedule/{cinema}', [UserController::class, 'showPrivateSchedule'])->name('schedule.private');
+Route::get('/membership', [MembershipController::class, 'index'])->name('membership.index');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -46,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('bookings', BookingController::class);
     Route::get('/payments/{booking}/create', [PaymentController::class, 'paymentPage'])->name('payments.create');
     Route::post('/payment/process', [PaymentController::class, 'store'])->name('payments.store');
+    Route::post('/membership/join', [MembershipController::class, 'join'])->name('membership.join');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {

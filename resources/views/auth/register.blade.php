@@ -1,4 +1,14 @@
 <x-guest-layout>
+    @php
+        $joinClubPrefill = old('join_club', request()->boolean('join_club'));
+    @endphp
+
+    @if ($joinClubPrefill)
+        <div class="mb-4 rounded-md border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
+            You are joining through CineMax Club. Complete registration to activate your membership.
+        </div>
+    @endif
+
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
@@ -37,6 +47,16 @@
                             name="password_confirmation" required autocomplete="new-password" />
 
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+        </div>
+
+        <div class="mt-4">
+            <label for="join_club" class="inline-flex items-center">
+                <input id="join_club" type="checkbox" name="join_club" value="1"
+                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                    @checked($joinClubPrefill)>
+                <span class="ms-2 text-sm text-gray-600">Join CineMax Club membership</span>
+            </label>
+            <x-input-error :messages="$errors->get('join_club')" class="mt-2" />
         </div>
 
         <div class="flex items-center justify-end mt-4">

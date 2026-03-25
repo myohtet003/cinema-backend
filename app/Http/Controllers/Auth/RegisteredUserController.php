@@ -33,12 +33,19 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'join_club' => ['nullable', 'boolean'],
         ]);
+
+        $joinClub = $request->boolean('join_club');
+        $membershipAttributes = $joinClub ? User::initialMembershipAttributes() : [];
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'is_club_member' => $joinClub,
+            'membership_joined_at' => $joinClub ? now() : null,
+            ...$membershipAttributes,
         ]);
 
         event(new Registered($user));

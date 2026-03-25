@@ -45,7 +45,7 @@
                         class="text-xs font-extrabold uppercase tracking-widest text-neutral-300 hover:text-white">
                         Login
                     </a>
-                    <a href="{{ route('register') }}"
+                    <a href="{{ route('membership.index') }}"
                         class="px-6 py-2.5 bg-indigo-600 rounded-xl text-xs font-extrabold uppercase tracking-widest hover:bg-indigo-500 transition">
                         Join Club
                     </a>
@@ -209,7 +209,7 @@
             <p class="text-neutral-300 max-w-xl mx-auto mb-10">
                 Earn points, get free tickets, early access, and exclusive cinema rewards.
             </p>
-            <a href="{{ route('register') }}"
+            <a href="{{ route('membership.index') }}"
                 class="inline-block px-10 py-4 bg-indigo-600 rounded-2xl font-black uppercase tracking-widest hover:bg-indigo-500 transition">
                 Become a Member
             </a>

@@ -49,7 +49,7 @@
                    class="text-xs font-extrabold uppercase tracking-widest text-neutral-300 hover:text-white">
                     Login
                 </a>
-                <a href="{{ route('register') }}"
+                <a href="{{ route('membership.index') }}"
                    class="px-6 py-2.5 bg-indigo-600 rounded-xl text-xs font-extrabold uppercase tracking-widest hover:bg-indigo-500 transition">
                     Join Club
                 </a>

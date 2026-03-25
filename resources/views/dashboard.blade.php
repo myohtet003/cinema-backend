@@ -13,6 +13,38 @@
 
     <div class="py-8 bg-gray-50/50">
         <div class="max-w-4xl mx-auto px-4 sm:px-6">
+            @if (session('success'))
+                <div class="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if (auth()->user()->is_club_member)
+                <div class="mb-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-4 flex items-center justify-between gap-4">
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-widest text-indigo-600">CineMax Club Member</p>
+                        <p class="text-sm text-indigo-700">
+                            Active since {{ optional(auth()->user()->membership_joined_at)->format('d M, Y') ?? 'today' }}
+                        </p>
+                        <p class="text-xs text-indigo-700 mt-1 uppercase tracking-wider font-semibold">
+                            {{ strtoupper((string) auth()->user()->membership_level) }} Level · {{ (int) auth()->user()->membership_discount_percent }}% Discount
+                        </p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full bg-indigo-600 text-white text-xs font-bold">Active</span>
+                </div>
+            @else
+                <div class="mb-4 rounded-2xl border border-gray-200 bg-white p-4 flex items-center justify-between gap-4">
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-widest text-gray-500">Membership</p>
+                        <p class="text-sm text-gray-700">Join CineMax Club for rewards and exclusive offers.</p>
+                    </div>
+                    <a href="{{ route('membership.index') }}"
+                        class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-indigo-500 transition">
+                        Join Club
+                    </a>
+                </div>
+            @endif
+
             <div class="space-y-3">
                 @forelse($bookings as $booking)
                     <div

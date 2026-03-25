@@ -12,6 +12,7 @@ use App\Models\SeatLock;
 use App\Models\Seat;
 use App\Models\Showtime;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class BookingController extends Controller
@@ -58,7 +59,8 @@ class BookingController extends Controller
         }
 
         $seats = Seat::with('seatRow')->whereIn('id', $seatIds)->get();
-        $totalPrice = $seats->sum(fn($seat) => $seat->seatRow->price);
+        $baseTotalPrice = $seats->sum(fn($seat) => $seat->seatRow->price);
+        $totalPrice = auth()->user()->discountedAmount($baseTotalPrice);
 
         return view('bookings.create', compact('showtime', 'seats', 'totalPrice'));
     }
@@ -126,7 +128,8 @@ class BookingController extends Controller
                 }
 
                 // 3. Calculate total price
-                $totalPrice = Seat::whereIn('id', $seatIds)->with('seatRow')->get()->sum(fn($seat) => $seat->seatRow->price);
+                $baseTotalPrice = Seat::whereIn('id', $seatIds)->with('seatRow')->get()->sum(fn($seat) => $seat->seatRow->price);
+                $totalPrice = auth()->user()->discountedAmount($baseTotalPrice);
 
                 // 4. Create booking
                 $booking = Booking::create([
@@ -207,7 +210,7 @@ class BookingController extends Controller
                     'user_id'      => auth()->id(),
                     'showtime_id'  => $showtime->id,
                     'booking_type' => 'private',
-                    'total_price'  => $privateRoomPrice->price,
+                    'total_price'  => auth()->user()->discountedAmount((int) $privateRoomPrice->price),
                     'status'       => 'pending',
                 ]);
 
@@ -279,6 +282,19 @@ class BookingController extends Controller
         try {
             DB::transaction(function () use ($booking) {
                 $booking->update(['status' => 'paid']);
+
+                $user = $booking->user()->lockForUpdate()->first();
+                $membershipColumnsReady =
+                    Schema::hasColumn('users', 'membership_total_spent') &&
+                    Schema::hasColumn('users', 'membership_level') &&
+                    Schema::hasColumn('users', 'membership_discount_percent');
+
+                if ($user && $user->is_club_member && $membershipColumnsReady) {
+                    $currentSpent = (int) $user->membership_total_spent;
+                    $user->membership_total_spent = $currentSpent + (int) $booking->total_price;
+                    $user->recalculateMembershipLevel();
+                    $user->save();
+                }
 
                 if ($booking->payment) {
                     $booking->payment->update(['status' => 'success']);
